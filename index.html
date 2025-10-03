@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>디모 발명 카드</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --main:#5cab6d; --accent:#a5e6b8; --bg:#f8fff9; --shadow:0 12px 40px rgba(0,0,0,0.3); }
+    *{ box-sizing:border-box; }
+    body{ font-family:"Noto Sans KR","Arial",sans-serif; background:var(--bg); text-align:center; margin:0; padding:20px; }
+    .screen{ display:none; } .screen.active{ display:block; }
+
+    .btn{ background:var(--accent); border:none; padding:14px 28px; border-radius:28px; cursor:pointer; font-size:18px; font-weight:700; color:#1f3b2b; margin:12px; transition:.2s; touch-action:manipulation;}
+    .btn:hover{ background:#8ed8a3; transform:translateY(-1px); }
+
+    video{ width:780px; max-width:100%; border-radius:20px; margin:20px auto; display:block; box-shadow:var(--shadow); }
+    #resultScreen > video{ display:none !important; }
+
+    .title{ font-family:'Jua',sans-serif; font-size:58px; font-weight:800; margin:12px 0 10px; color:#5cab6d; }
+
+    .section-title{ font-family:'Jua',sans-serif; font-size:28px; font-weight:700; color:#2d4d38; margin:10px auto 6px; width:100%; max-width:680px; text-align:left; }
+    form{ background:#fff; border-radius:20px; padding:30px; display:flex; flex-direction:column; text-align:left; max-width:680px; width:100%; margin:20px auto; box-shadow:0 6px 20px rgba(0,0,0,0.08); border:3px solid var(--accent);}
+    .form-group{ margin-bottom:20px; }
+    label{ font-weight:bold; font-size:17px; color:#000; display:block; margin-bottom:8px; }
+    input,textarea,select{ width:100%; padding:12px; border-radius:10px; border:2px solid #d3f2db; font-size:15px; background:#fafffa; transition:border .2s, box-shadow .2s; }
+    input:focus,textarea:focus,select:focus{ outline:none; border:2px solid var(--main); box-shadow:0 0 8px rgba(92,171,109,.3); }
+    textarea{ min-height:110px; }
+
+    .celebration-card{ background:#ffffff; border:3px solid var(--accent); border-radius:20px; padding:16px 16px 56px; max-width:720px; margin:12px auto; box-shadow:0 8px 24px rgba(0,0,0,.12); position:relative; width:100%; overflow:hidden; will-change:transform; transform:translateZ(0);}
+    .banner{ font-family:'Jua',sans-serif; font-size:32px; font-weight:900; margin:0 0 8px 0; text-align:center; width:100%; background:linear-gradient(90deg,#5cab6d,#3c9d9b,#6a5acd); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; text-shadow:2px 2px 6px rgba(0,0,0,.08); }
+    .card-body{ display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center; }
+    .dimo-left{ width:clamp(108px,26vw,160px); height:auto; border-radius:16px; flex-shrink:0; align-self:center; object-fit:contain; margin:0 auto; }
+    .ratings-wrap{ flex:1; min-width:0; text-align:left; }
+    .rating{ display:flex; justify-content:space-between; align-items:center; background:#f9fffb; border:2px solid #d3f2db; border-radius:10px; padding:8px 12px; margin:6px 0; white-space:nowrap; }
+    .rating h3{ margin:0; font-size:clamp(13px,3.8vw,16px); font-weight:700; color:#2d4d38; flex:1; white-space:nowrap; }
+    .stars{ display:flex; gap:4px; white-space:nowrap; font-size:clamp(18px,5vw,26px); cursor:pointer; }
+    .star{ position:relative; color:#d8d8d8; will-change:transform; }
+    .star.full{ color:#ffcc00; text-shadow:1px 1px 6px rgba(255,204,0,.7); }
+    .star.half::before{ content:"★"; position:absolute; left:0; top:0; width:50%; overflow:hidden; color:#ffcc00; text-shadow:1px 1px 6px rgba(255,204,0,.7); }
+
+    @keyframes dimo-twinkle{ 0%{ transform:scale(1) rotate(0); filter: drop-shadow(0 0 0 rgba(255,204,0,0)); } 50%{ transform:scale(1.15) rotate(-5deg); filter: drop-shadow(0 0 8px rgba(255,204,0,.7)); } 100%{ transform:scale(1) rotate(0); filter: drop-shadow(0 0 0 rgba(255,204,0,0)); } }
+    .stars.twinkle .star.full, .stars.twinkle .star.half { animation: dimo-twinkle 600ms ease both; }
+
+    .idea-info{ margin-top:12px; font-size:clamp(14px,4vw,18px); font-weight:bold; color:#333; text-align:center; background:#f9fffb; padding:10px 14px; border-radius:16px; border:2px solid #d3f2db; max-width:720px; margin-left:auto; margin-right:auto; line-height:1.8; word-break:keep-all; overflow-wrap:anywhere; display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+    .idea-info strong{ color:var(--main); }
+    .idea-info .info-item{ display:inline-flex; align-items:center; gap:6px; }
+    .idea-info .sep{ opacity:.4; }
+
+    .celebration-card .actions{ display:flex; gap:8px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+    .btn-save{ background:linear-gradient(135deg,#bff3c8 0%, #8de0d3 100%); color:#103a30; border:none; font-weight:800; box-shadow:0 6px 16px rgba(0,0,0,.08); }
+
+    #stampArea{ position:absolute; inset:0; pointer-events:none; }
+    .stamp-wrap{ position:absolute; }
+    .stamp-img{ width:100%; display:block; transform-origin:center; filter: drop-shadow(0 6px 12px rgba(0,0,0,.10)); }
+    .impact,.ink{ position:absolute; inset:0; pointer-events:none; }
+    .impact{ border:6px solid rgba(0,0,0,.14); border-radius:50%; transform:scale(0); opacity:0; }
+    .ink{ background: radial-gradient(ellipse at center, rgba(0,0,0,.15) 0%, rgba(0,0,0,0) 70%); opacity:0; transform:scale(.8); }
+
+    .stamp-enter{ animation: stamp-pop 520ms cubic-bezier(.18,1.4,.22,1) forwards; }
+    @keyframes stamp-pop{ 0%{ opacity:0; transform: translateY(-16px) scale(1.35) rotate(var(--r,-4deg)); filter: blur(1px) drop-shadow(0 24px 36px rgba(0,0,0,.18)); } 65%{ opacity:1; transform: translateY(0) scale(.97) rotate(var(--r,-4deg)); filter: drop-shadow(0 10px 18px rgba(0,0,0,.14)); } 100%{ transform: scale(1) rotate(var(--r,-4deg)); filter: drop-shadow(0 6px 12px rgba(0,0,0,.10)); } }
+    @keyframes impact-wave{ 0%{ transform:scale(0); opacity:0; } 30%{ transform:scale(1); opacity:.35; } 100%{ transform:scale(1.35); opacity:0; } }
+    @keyframes ink-spread{ 0%{ opacity:0; transform:scale(.8); } 100%{ opacity:.5; transform:scale(1.1); } }
+    .hit .impact{ animation: impact-wave 420ms ease-out 80ms forwards; }
+    .hit .ink{ animation: ink-spread 700ms ease-out 60ms forwards; }
+
+    .celebration-card.paper-jolt{ animation: paper-jolt 220ms cubic-bezier(.3,.7,.4,1) 1; }
+    @keyframes paper-jolt{ 0%{ transform: translateY(0) rotate(0); } 30%{ transform: translateY(1px) rotate(-0.25deg); } 60%{ transform: translateY(0) rotate(0.15deg); } 100%{ transform: translateY(0) rotate(0); } }
+
+    .banner{ font-size:clamp(22px,6.5vw,32px); line-height:1.15; word-break:keep-all; }
+    @media (max-width: 480px){
+      body{ padding:12px; }
+      .title{ font-size: 34px; margin: 8px 0; }
+      .celebration-card{ padding:12px 12px 52px; }
+      .card-body{ gap:10px; }
+      .rating{ padding:10px 12px; }
+      .idea-info{ flex-direction:column; gap:6px; }
+      .idea-info .sep{ display:none; }
+    }
+
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + env(safe-area-inset-bottom, 0px)); background:#2c7a4c; color:#fff; padding:12px 16px; border-radius:10px; font-weight:700; box-shadow:0 8px 18px rgba(0,0,0,.15); opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s ease; z-index:9999;}
+    .toast.show{ opacity:1; visibility:visible; }
+
+    .save-fixed{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(84px + env(safe-area-inset-bottom, 0px)); z-index:9998; }
+
+    .card-footer-logo{ position:absolute; right:16px; bottom:12px; font-family:'Orbitron',sans-serif; font-weight:900; letter-spacing:1.5px; font-size:14px; opacity:.55; user-select:none; }
+
+    .particle{ position:fixed; pointer-events:none; will-change: transform, opacity; font-size:24px; opacity:0; }
+    @keyframes float-up{ 0%{ transform: translate(0,0) scale(.9) rotate(0deg); opacity:0; } 10%{ opacity:1; } 100%{ transform: translate(var(--dx,0px), var(--dy,-120px)) scale(1.2) rotate(var(--rot,20deg)); opacity:0; } }
+
+    .celebration-card.glow{ animation: card-glow 2.4s ease-in-out infinite alternate; }
+    @keyframes card-glow{ 0%{ box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 0 0px rgba(92,171,109,0.0); } 100%{ box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 0 22px rgba(92,171,109,0.35); } }
+
+    .stamp-bubble{ position:absolute; left:0; top:0; transform: translate(-6px,-6px); background:rgba(255,255,255,.95); border:2px solid #a5e6b8; border-radius:14px; padding:4px 10px; font-weight:900; color:#246244; box-shadow:0 6px 14px rgba(0,0,0,.08); opacity:0; animation: bubble-pop 900ms ease-out forwards; font-family:'Jua',sans-serif; font-size:14px; white-space:nowrap; }
+    @keyframes bubble-pop{ 0%{ transform: translate(-6px,4px) scale(.9); opacity:0; } 40%{ transform: translate(-6px,-6px) scale(1.02); opacity:1; } 100%{ transform: translate(-6px,-18px) scale(1); opacity:0; } }
+
+    .star.fillping{ animation: fillping .38s ease-out; }
+    @keyframes fillping{ 0%{ transform: scale(.6) rotate(-8deg); filter: drop-shadow(0 0 0 rgba(255,204,0,0)); } 60%{ transform: scale(1.25) rotate(0); filter: drop-shadow(0 0 10px rgba(255,204,0,.7)); } 100%{ transform: scale(1); } }
+
+    @media (prefers-reduced-motion: reduce){ .celebration-card.glow{ animation:none; } }
+  </style>
+</head>
+<body>
+
+  <!-- 1) 인트로 -->
+  <div id="introScreen" class="screen active">
+    <h1 class="title">디모의 발명 어드벤쳐</h1>
+    <button id="goFormBtn" class="btn">▶ 디모 만나러 가기</button>
+    <video autoplay muted loop playsinline webkit-playsinline><source src="dimo.mp4" type="video/mp4"></video>
+    <audio id="intro1" src="디모인트로인사1.mp3" preload="auto"></audio>
+    <audio id="intro2" src="디모인트로인사2.mp3" preload="auto"></audio>
+    <audio id="intro3" src="디모인트로인사3.mp3" preload="auto"></audio>
+    <audio id="intro4" src="디모인트로인사4.mp3" preload="auto"></audio>
+  </div>
+
+  <!-- 2) 설문 -->
+  <div id="formScreen" class="screen">
+    <h2 class="section-title">📣 디모에게 알려줘</h2>
+    <form id="ideaForm" novalidate>
+      <div class="form-group">
+        <label>1. 디모는 친구 나이가 궁금해! *</label>
+        <select id="age" required>
+          <option value="">선택하세요</option>
+          <option value="8">8세</option><option value="9">9세</option><option value="10">10세</option>
+          <option value="11">11세</option><option value="12">12세</option><option value="13">13세</option>
+          <option value="14">14세</option><option value="15">15세</option><option value="16">16세</option>
+          <option value="17">17세</option><option value="18">18세</option><option value="19">19세</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>2. 디모에게 너만의 멋진 별명을 정해줘! (실명말고 별명으로) *</label>
+        <input type="text" id="nickname" placeholder="예: 발명왕 디모!" required>
+      </div>
+
+      <div class="form-group">
+        <label>3. 평소에 "아~ 이거 불편하다!" 싶었던 순간이 있었어? 디모한테 말해줄래? *</label>
+        <textarea id="problem" placeholder="예: 연필이 자꾸 굴러가서 잃어버려요" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>4. 그 불편을 해결할 멋진 발명품 이름을 딱! 지어볼까? *</label>
+        <input type="text" id="ideaName" placeholder="예: 안 굴러가는 연필" required>
+      </div>
+
+      <div class="form-group">
+        <label>5. 이 발명품은 어떻게 작동하고 어떤점이 편리해 지는거야? *</label>
+        <textarea id="ideaDetail" placeholder="예: 연필에 작은 자석이 붙어서 책상에 딱 달라 붙어요. 그래서 지우개를 잘 잊어버리지 않고 필요할 때마다 쓸 수 있어요." required></textarea>
+        <div class="char-count" style="text-align:right;"><span id="charCount">0</span>자</div>
+        <div class="char-count">30자↑ 기본 / 40자↑ <strong>만점 4%</strong> / 50자↑ <strong>레어 5%</strong>(만점 실패 시)</div>
+      </div>
+
+      <div class="form-group">
+        <label>6. (선택) 보호자 이메일 (굿즈 당첨 시 안내용)</label>
+        <input type="email" id="parentEmail" placeholder="예: parent@example.com" inputmode="email">
+      </div>
+
+      <div id="consentWrap" class="form-group privacy-check" style="display:none">
+        <input type="checkbox" id="consent">
+        <label for="consent">작성하신 이메일은 <strong>당첨 안내에만 사용</strong>되며, 행사 종료 후 <strong>즉시 파기</strong>됩니다.</label>
+      </div>
+
+      <p class="privacy-note">※ 보호자 이메일은 <strong>굿즈 이벤트 참여를 희망할 경우에만</strong> 작성하세요. 입력하지 않아도 아이디어 제출과 스탬프 획득은 정상 진행됩니다.</p>
+      <button type="submit" class="btn">디모에게 보내기</button>
+    </form>
+
+    <!-- 입력 안내 오디오(1회 재생) -->
+    <audio id="hintNickname"   src="별명안내멘트.mp3" preload="auto"></audio>
+    <audio id="hintProblem"    src="불편한점안내멘트.mp3" preload="auto"></audio>
+    <audio id="hintIdeaDetail" src="아이디어설명멘트.mp3" preload="auto"></audio>
+  </div>
+
+  <!-- 3) 결과 -->
+  <div id="resultScreen" class="screen">
+    <video autoplay muted loop playsinline webkit-playsinline><source src="dimo.mp4" type="video/mp4"></video>
+
+    <div id="celebrationArea" class="celebration-card">
+      <h2 class="banner">나만의 아이디어 카드</h2>
+      <div class="card-body">
+        <img id="dimoImage" src="" alt="디모 캐릭터" class="dimo-left">
+        <div class="ratings-wrap">
+          <div class="rating"><h3>반짝이는 상상력</h3><div id="creativity" class="stars"></div></div>
+          <div class="rating"><h3>정말 될까? 점수</h3><div id="feasibility" class="stars"></div></div>
+          <div class="rating"><h3>디모의 기술력 레벨</h3><div id="technical" class="stars"></div></div>
+        </div>
+      </div>
+
+      <div id="ideaInfo" class="idea-info">
+        <span class="info-item">👤 <strong>발명자:</strong> <span id="inventorName"></span></span>
+        <span class="sep" aria-hidden="true">|</span>
+        <span class="info-item">💡 <strong>내 발명품:</strong> <span id="ideaDisplay"></span></span>
+      </div>
+
+      <div class="actions"></div>
+      <div class="card-footer-logo">DIMO UNIVERSE</div>
+      <div id="stampArea"></div>
+    </div>
+
+    <div class="save-fixed"><button id="shareBtn" class="btn btn-save" aria-label="카드 저장하기">🎨 카드 저장하기</button></div>
+
+    <div id="particleLayer" aria-hidden="true"></div>
+
+    <!-- 칭찬 오디오(랜덤 풀) -->
+    <audio id="compliment1" src="디모칭찬01.mp3" preload="auto"></audio>
+    <audio id="compliment2" src="디모칭찬02.mp3" preload="auto"></audio>
+    <audio id="compliment3" src="디모칭찬03.mp3" preload="auto"></audio>
+    <audio id="compliment4" src="디모칭찬04.mp3" preload="auto"></audio>
+    <audio id="compliment5" src="디모칭찬05.mp3" preload="auto"></audio>
+    <audio id="compliment6" src="디모 칭찬 메시지.mp3" preload="auto"></audio>
+    <!-- (보유 파일 유지하되 랜덤에는 사용 안 함) -->
+    <audio id="audioPerfect" src="만점용칭찬.mp3" preload="auto"></audio>
+    <audio id="audioRare" src="행운의레어템칭찬.mp3" preload="auto"></audio>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">📥 앨범에 저장되었어요!</div>
+
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <script>
+    const MOBILE = window.matchMedia('(max-width: 480px), (pointer: coarse)').matches;
+    const STAR_STEP_MS = 260;
+    const dimoImages = ["dimo01.png","dimo02.png","dimo03.png","dimo04.png"];
+
+    function playOne(a){ if(!a) return Promise.resolve(false); try{ a.currentTime=0; a.muted=false; return a.play().then(()=>true).catch(()=>false);}catch(e){ return Promise.resolve(false);} }
+
+    // 🔓 오디오 언락(제스처 안에서 실제 재생 후 즉시 정지)
+    async function unlockAudios(ids){
+      for(const id of ids){
+        const a=document.getElementById(id); if(!a) continue;
+        try{
+          a.load();
+          const vol=a.volume; a.volume=0.001;
+          await a.play(); a.pause(); a.currentTime=0; a.volume=vol;
+        }catch(e){}
+      }
+    }
+
+    function sprayParticlesAroundCard(durationMs=2400){
+      const card=document.getElementById('celebrationArea'); if(!card) return;
+      const rect=card.getBoundingClientRect(); const emojis=["⭐","💖","🎈","✨"];
+      const start=performance.now(); const burst=MOBILE?3:4; const interval=MOBILE?190:160;
+      function spawnOne(){
+        const el=document.createElement('div'); el.className='particle'; el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+        const x=rect.left+Math.random()*rect.width, y=rect.top+Math.random()*rect.height; el.style.left=x+'px'; el.style.top=y+'px';
+        const dx=(Math.random()*160-80).toFixed(0), dy=(-(100+Math.random()*140)).toFixed(0), rot=(Math.random()*120-60).toFixed(0)+'deg';
+        el.style.setProperty('--dx',dx+'px'); el.style.setProperty('--dy',dy+'px'); el.style.setProperty('--rot',rot);
+        el.style.animation='float-up 2.2s ease-out forwards'; document.body.appendChild(el); setTimeout(()=>el.remove(),2300);
+      }
+      const timer=setInterval(()=>{ for(let i=0;i<burst;i++) spawnOne(); if(performance.now()-start>durationMs) clearInterval(timer); }, interval);
+    }
+
+    (function setupIntro(){
+      const btn=document.getElementById('goFormBtn'); const introScreen=document.getElementById('introScreen'); const formScreen=document.getElementById('formScreen');
+      const intros=["intro1","intro2","intro3","intro4"].map(id=>document.getElementById(id)).filter(Boolean);
+      let locked=false;
+      btn.addEventListener('click', ()=>{
+        if(locked) return; locked=true; btn.disabled=true; btn.style.opacity=.7; btn.style.cursor='default';
+        const pick=arr=>arr[Math.floor(Math.random()*arr.length)]; const audio=intros.length?pick(intros):null;
+        const GUARD_MS=12000; let guard=setTimeout(()=>gotoForm(),GUARD_MS);
+        function gotoForm(){ clearTimeout(guard); introScreen.classList.remove('active'); formScreen.classList.add('active'); document.getElementById('ideaDetail')?.focus(); }
+        if(!audio){ setTimeout(gotoForm,2500); return; }
+        try{ audio.currentTime=0; audio.muted=false; const p=audio.play(); if(p&&typeof p.then==='function'){ p.then(()=>{ audio.onended=()=>setTimeout(gotoForm,2000); }).catch(()=>setTimeout(gotoForm,2500)); } else { audio.onended=()=>setTimeout(gotoForm,2000); } }catch(e){ setTimeout(gotoForm,2500); }
+      }, {passive:true});
+    })();
+
+    (function setupFormHelpers(){
+      const detail=document.getElementById('ideaDetail'); const charCount=document.getElementById('charCount');
+      const parentEmail=document.getElementById('parentEmail'); const consentWrap=document.getElementById('consentWrap'); const consent=document.getElementById('consent');
+      function updateLen(){ const len=(detail.value||'').trim().length; charCount.textContent=len; }
+      detail.addEventListener('input', updateLen, {passive:true}); updateLen();
+      function syncConsent(){ const hasEmail=(parentEmail.value||'').trim().length>0; consentWrap.style.display=hasEmail?'flex':'none'; if(hasEmail){ consent.setAttribute('required','required'); }else{ consent.removeAttribute('required'); consent.checked=false; } }
+      parentEmail.addEventListener('input', syncConsent, {passive:true}); syncConsent();
+
+      const onceOpts={ once:true, passive:true };
+      const hintNickname=document.getElementById('hintNickname'); const hintProblem=document.getElementById('hintProblem'); const hintIdeaDetail=document.getElementById('hintIdeaDetail');
+      document.getElementById('nickname').addEventListener('click', ()=>playOne(hintNickname), onceOpts);
+      document.getElementById('problem').addEventListener('click', ()=>playOne(hintProblem), onceOpts);
+      document.getElementById('ideaDetail').addEventListener('click', ()=>playOne(hintIdeaDetail), onceOpts);
+    })();
+
+    // 별점 애니(항목별, 빈 상태에서 시작)
+    function animateStarsToScore(id, score){
+      return new Promise(resolve=>{
+        const el=document.getElementById(id); if(!el) return resolve();
+        // 항상 빈 상태로 초기화
+        el.innerHTML='<span class="star">★</span>'.repeat(5);
+        const full=Math.floor(score); const hasHalf=(score-full)>=0.5; let idx=0, target=full+(hasHalf?1:0);
+        (function step(){
+          if(idx>=target){ setTimeout(resolve, 400); return; }
+          const s=el.children[idx];
+          if(idx<full){ s.classList.add('full','fillping'); } else if(hasHalf){ s.classList.add('half','fillping'); }
+          idx++; setTimeout(step, STAR_STEP_MS);
+        })();
+      });
+    }
+
+    function fireConfetti(duration=2000){
+      const end=Date.now()+duration; const pc=MOBILE?4:5;
+      (function frame(){ window.confetti && confetti({particleCount:pc, startVelocity:30, spread:360, origin:{x:Math.random(), y:Math.random()-0.2}}); if(Date.now()<end) requestAnimationFrame(frame); })();
+    }
+
+    function isLikelyGibberish(text){
+      const t=(text||'').trim(); if(t.length<10) return true; if(!/[가-힣A-Za-z]/.test(t)) return true; if(/(.)\1{3,}/.test(t)) return true;
+      const badSeq=["ㅋㅋ","ㅎㅎ","ㅠㅠ","ㅜㅜ","ㅁㄴㅇㄹ","asdf","qwer","zxcv","dfgh","hjkl"]; const low=t.toLowerCase(); for(const b of badSeq){ if(low.includes(b.repeat(3))) return true; }
+      const nonAlnum=(t.match(/[^가-힣A-Za-z0-9]/g)||[]).length; if(nonAlnum/t.length>0.6) return true;
+      const uniqKo=new Set((t.match(/[가-힣]/g)||[])); if(uniqKo.size<4) return true; return false;
+    }
+
+    // 🎵 랜덤 칭찬 오디오
+    function pickRandomCompliment(){
+      const ids=["compliment1","compliment2","compliment3","compliment4","compliment5","compliment6"];
+      const els=ids.map(id=>document.getElementById(id)).filter(Boolean);
+      return els[Math.floor(Math.random()*els.length)];
+    }
+    async function playRandomComplimentWithRetry(){
+      const a=pickRandomCompliment();
+      let ok = await playOne(a);
+      if(!ok){
+        // 재시도: 결과 화면에서 첫 터치 시 재생(시각적 변화 없음)
+        const rs=document.getElementById('resultScreen');
+        const handler=async ()=>{ rs.removeEventListener('pointerdown', handler); await playOne(a); };
+        rs.addEventListener('pointerdown', handler, {once:true});
+      }
+    }
+
+    (function setupSubmit(){
+      const formScreen=document.getElementById('formScreen'); const resultScreen=document.getElementById('resultScreen');
+      const inventorName=document.getElementById('inventorName'); const ideaDisplay=document.getElementById('ideaDisplay');
+      const dimoImage=document.getElementById('dimoImage'); const stampArea=document.getElementById('stampArea');
+
+      document.getElementById('ideaForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const form=e.currentTarget; if(!form.checkValidity()){ form.reportValidity(); return; }
+
+        const text=(document.getElementById('ideaDetail').value||"").trim();
+        if(text.length<10){ alert('설명이 10자 미만이에요.\n조금만 더 자세히 써보자! 😉'); return; }
+
+        const fieldsToCheck=[ {id:'problem',label:'불편했던 순간'}, {id:'ideaDetail',label:'발명품 설명'} ];
+        for(const f of fieldsToCheck){
+          const v=(document.getElementById(f.id).value||'').trim();
+          if(isLikelyGibberish(v)){ alert(`${f.label}에 의미 있는 내용을 적어줘!\n(반복문자/키보드 마구 입력/특수문자 남발은 안돼요)`); return; }
+        }
+
+        // 🔓 오디오 언락(제스처 시점)
+        await unlockAudios(["compliment1","compliment2","compliment3","compliment4","compliment5","compliment6","audioPerfect","audioRare"]);
+
+        // 데이터 바인딩
+        inventorName.textContent=document.getElementById('nickname').value;
+        ideaDisplay.textContent=document.getElementById('ideaName').value;
+
+        dimoImage.src=dimoImages[Math.floor(Math.random()*dimoImages.length)];
+        dimoImage.style.display='block';
+
+        // 화면 전환
+        formScreen.classList.remove('active');
+        resultScreen.classList.add('active');
+        const cardEl=document.getElementById('celebrationArea');
+        cardEl.classList.add('glow');
+
+        // ⭐ 별점 목표치 계산(만점/레어 로직은 유지하지만 오디오는 랜덤으로만 재생)
+        const len=text.length;
+        let stampSrc=null, didPerfect=false, didRare=false;
+        if(len>=30) stampSrc='디모스탬프01.png';
+        if(len>=40 && Math.random()<0.04){ didPerfect=true; stampSrc='디모스탬프만점02.png'; }
+        else if(len>=50 && Math.random()<0.05){ didRare=true; stampSrc='디모스탬프레어03.png'; }
+
+        const scores = didPerfect
+          ? {creativity:5, feasibility:5, technical:5}
+          : {
+              creativity: Math.round((3.5+Math.random()*1.5)*2)/2,
+              feasibility: Math.round((3.5+Math.random()*1.5)*2)/2,
+              technical: Math.round((3.5+Math.random()*1.5)*2)/2
+            };
+
+        // ★ 항상 빈 상태에서 시작(선제 초기화)
+        ["creativity","feasibility","technical"].forEach(id=>{
+          const el=document.getElementById(id); if(el) el.innerHTML='<span class="star">★</span>'.repeat(5);
+        });
+
+        // ✅ 항목별 순차 채우기(창의력 → 될까점수 → 기술력)
+        await animateStarsToScore('creativity',  scores.creativity);
+        await animateStarsToScore('feasibility', scores.feasibility);
+        await animateStarsToScore('technical',   scores.technical);
+
+        // 🎉 콘페티
+        setTimeout(()=>fireConfetti(2000),700);
+
+        // ⏱️ 별점 완료 후 2초 → 스탬프 & 🔊랜덤 칭찬
+        setTimeout(async ()=>{
+          if(stampSrc){
+            const size=132, offset=24, card=cardEl;
+            const posX=card.clientWidth - size - offset, posY=offset;
+            stampArea.innerHTML=`
+              <div class="stamp-wrap hit" style="left:${posX}px;top:${posY}px;width:${size}px;height:${size}px;">
+                <img src="${stampSrc}" alt="스탬프" class="stamp-img stamp-enter" style="--r:${(Math.random()*8-4).toFixed(1)}deg">
+                <span class="impact"></span><span class="ink"></span>
+              </div>`;
+            const bubble=document.createElement('div'); bubble.className='stamp-bubble'; bubble.textContent='꾹-';
+            bubble.style.left=(posX+size-12)+'px'; bubble.style.top=(posY-6)+'px'; stampArea.appendChild(bubble); setTimeout(()=>bubble.remove(),900);
+            card.classList.add('paper-jolt'); setTimeout(()=>card.classList.remove('paper-jolt'),240);
+            if(navigator.vibrate){ try{ navigator.vibrate(30); }catch(_){} }
+          }else{
+            stampArea.innerHTML="";
+          }
+
+          // 🎵 칭찬은 항상 랜덤으로
+          await playRandomComplimentWithRetry();
+        }, 2000);
+      });
+    })();
+
+    (function setupStarTwinkle(){
+      document.querySelectorAll('.stars').forEach(el=>{
+        el.addEventListener('click', ()=>{ el.classList.add('twinkle'); setTimeout(()=>el.classList.remove('twinkle'),650); }, {passive:true});
+      });
+    })();
+
+    (function setupActions(){
+      const btn=document.getElementById('shareBtn'); const toast=document.getElementById('toast');
+      function showToast(){ if(!toast) return; toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1800); }
+      btn.addEventListener('click', ()=>{
+        const card=document.getElementById('celebrationArea'); const scale=Math.min(MOBILE?1.2:1.5, window.devicePixelRatio||1);
+        html2canvas(card,{ scale, useCORS:true }).then(canvas=>{
+          const link=document.createElement('a'); link.href=canvas.toDataURL('image/png'); link.download='dimo_card.png';
+          if(/iPad|iPhone|iPod/.test(navigator.userAgent)){ const w=window.open(); if(w&&w.document){ w.document.write('<img src="'+link.href+'" style="width:100%">'); } } else { link.click(); }
+          showToast(); sprayParticlesAroundCard(2600);
+        }).catch(()=>{ showToast(); sprayParticlesAroundCard(2000); });
+      }, {passive:true});
+    })();
+  </script>
+</body>
+</html>
