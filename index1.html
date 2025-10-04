@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>디모의 발명 어드벤처</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 폰트 -->
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --mint:#A5E6B8;
+      --blue:#A9D6FF;
+      --pink:#FFD6E8;
+      --yellow:#FFEAA7;
+      --bg:#F6FFFA;
+      --shadow:0 20px 40px rgba(0,0,0,.15);
+    }
+    *{box-sizing:border-box;}
+    html,body{margin:0; height:100%; background:var(--bg); font-family:'Jua',sans-serif;}
+
+    .screen {display:none; min-height:100vh; align-items:center; justify-content:center; padding:24px;}
+    .active {display:flex;}
+
+    /* 배경 반짝임 */
+    .pattern {
+      position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255,214,232,0.25) 0 140px, transparent 150px),
+        radial-gradient(circle at 80% 60%, rgba(169,214,255,0.25) 0 120px, transparent 130px),
+        radial-gradient(circle at 50% 80%, rgba(255,234,167,0.25) 0 140px, transparent 150px);
+      background-size: 400% 400%;
+      animation: movebg 30s linear infinite;
+    }
+    @keyframes movebg {
+      0% { background-position: 0 0, 0 0, 0 0; }
+      100% { background-position: 800px 600px, -600px 400px, 400px -800px; }
+    }
+
+    /* 인트로 카드 */
+    .hero {
+      background:linear-gradient(145deg,#ffffff,#fafffb);
+      border-radius:36px;
+      box-shadow:var(--shadow);
+      padding:40px 30px;
+      max-width:960px;
+      width:100%;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* 슬로건 */
+    .slogan {
+      font-family:'Baloo 2','Jua',cursive;
+      font-size:clamp(30px,8vw,70px);
+      font-weight:900;
+      margin:10px 0 20px;
+      background:linear-gradient(90deg,var(--mint),var(--blue),var(--pink),var(--yellow),var(--mint));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-size:300% auto;
+      animation: shine 6s linear infinite;
+      text-shadow:0 4px 10px rgba(0,0,0,0.15);
+    }
+    @keyframes shine {
+      0%{background-position:0% center;}
+      100%{background-position:100% center;}
+    }
+
+    .subtitle {
+      font-size:20px;
+      color:#3b7f59;
+      margin-bottom:30px;
+    }
+
+    /* 디모 캐릭터 */
+    .mascot {
+      display:flex; justify-content:center; margin-bottom:20px;
+      position:relative;
+    }
+    .mascot img {
+      width:min(320px,80%);
+      animation:bounce 3s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%,100%{transform:translateY(0);}
+      50%{transform:translateY(-10px);}
+    }
+    .bubble {
+      position:absolute; top:-20px; right:10px;
+      background:#fff; padding:10px 16px; border-radius:18px;
+      box-shadow:0 6px 16px rgba(0,0,0,.12);
+      font-size:18px; color:#3b7f59;
+      animation: bob 3s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%,100%{transform:translateY(0);}
+      50%{transform:translateY(-6px);}
+    }
+
+    /* 버튼 */
+    .btn {
+      font-size:22px; font-weight:700;
+      padding:16px 28px;
+      border:none; cursor:pointer;
+      background:linear-gradient(135deg,var(--mint),var(--blue));
+      border-radius:28px; color:#144a2f;
+      box-shadow:0 10px 20px rgba(0,0,0,.15);
+      transition:all .2s ease;
+    }
+    .btn:hover {transform:translateY(-3px) scale(1.05); box-shadow:0 14px 28px rgba(0,0,0,.2);}
+    .btn:active {transform:scale(.97);}
+
+    /* 카드 화면 */
+    .card {
+      background:#fff;
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:24px;
+      max-width:800px;
+      width:100%;
+      text-align:center;
+      position:relative;
+    }
+    .card h2 {
+      font-size:28px;
+      margin-bottom:18px;
+      color:#3b7f59;
+    }
+    .stars {display:flex; justify-content:center; gap:8px; margin:14px 0;}
+    .star {
+      width:28px; height:28px;
+      background:linear-gradient(180deg,#FFDE66,#FFB800);
+      clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+      opacity:.3; transition:.3s;
+    }
+    .star.on {opacity:1;}
+    .stamp {
+      position:absolute; right:20px; bottom:20px;
+      width:160px; opacity:.85;
+      transform:rotate(-10deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="pattern"></div>
+
+  <!-- 인트로 화면 -->
+  <section id="intro" class="screen active">
+    <div class="hero">
+      <h1 class="slogan">✨ 상상은 정답을 넘는다 ✨</h1>
+      <p class="subtitle">신기한 발명 모험의 세계로 떠나볼까?</p>
+
+      <div class="mascot">
+        <img src="dimo.png" alt="디모 캐릭터">
+        <div class="bubble">준비됐어? 🚀</div>
+      </div>
+
+      <button class="btn" id="startBtn">디모 만나러 가기 ▶</button>
+    </div>
+  </section>
+
+  <!-- 카드 화면 -->
+  <section id="card" class="screen">
+    <div class="card">
+      <h2>내 발명 아이디어 카드</h2>
+      <p><b>발명가:</b> 김상준</p>
+      <p><b>아이디어:</b> 안 굴러가는 연필 ✏️</p>
+
+      <div class="stars" data-score="4"></div>
+      <div class="stars" data-score="5"></div>
+      <div class="stars" data-score="3"></div>
+
+      <img src="stamp_rare03.png" alt="스탬프" class="stamp">
+    </div>
+  </section>
+
+  <script>
+    const screens = document.querySelectorAll('.screen');
+    const stars = document.querySelectorAll('.stars');
+
+    // 화면 전환
+    document.getElementById("startBtn").addEventListener("click", ()=>{
+      screens.forEach(s=>s.classList.remove('active'));
+      document.getElementById("card").classList.add('active');
+      animateStars();
+    });
+
+    // 별점 애니메이션
+    function animateStars(){
+      stars.forEach(row=>{
+        const score = +row.dataset.score || 0;
+        row.innerHTML = "";
+        for(let i=0;i<5;i++){
+          const s = document.createElement("div");
+          s.className="star";
+          row.appendChild(s);
+          if(i<score){
+            setTimeout(()=>s.classList.add("on"), i*250);
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
