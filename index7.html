@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>디모와 함께 하는 상상 놀이터</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 폰트: 성능 최적화 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --main:#5cab6d; --accent:#a5e6b8; --bg:#f8fff9; --text:#173322;
+      --shadow:0 12px 40px rgba(0,0,0,.16);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:'Jua',sans-serif;background:var(--bg);color:var(--text)}
+    .screen{display:none}.screen.active{display:block}
+
+    /* 파스텔 움직임 배경 (인트로에서만 보임) */
+    .pattern{
+      position:fixed; inset:0; z-index:-3; pointer-events:none; opacity:.7;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(165,230,184,.25) 0 140px, transparent 150px),
+        radial-gradient(circle at 88% 25%, rgba(169,214,255,.22) 0 120px, transparent 130px),
+        radial-gradient(circle at 18% 85%, rgba(255,214,232,.22) 0 140px, transparent 150px),
+        radial-gradient(circle at 80% 82%, rgba(255,234,167,.20) 0 130px, transparent 140px);
+      animation:dimo-bg-move 28s linear infinite;
+    }
+    @keyframes dimo-bg-move{
+      0%{background-position:0 0,0 0,0 0,0 0}
+      100%{background-position:600px 360px,-520px 480px,300px -420px,-300px 300px}
+    }
+    body:not([data-screen="intro"]) .pattern{ display:none !important; }
+
+    /* 버튼 */
+    .btn{
+      border:none;border-radius:28px;padding:14px 28px;font-size:18px;font-weight:800;
+      cursor:pointer;white-space:nowrap;min-width:220px;position:relative;z-index:10;
+    }
+    .btn-primary{background:linear-gradient(90deg,#7bd49a,#4aa06b);color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.12)}
+    .btn-primary:hover{filter:brightness(1.05);transform:translateY(-1px)}
+    .btn:active{animation:jelly .6s}
+    @keyframes jelly{0%{transform:scale(1)}30%{transform:scale(.95,1.05)}60%{transform:scale(1.05,.95)}100%{transform:scale(1)}}
+
+    /* 테마 스위처 (인트로에서만 표시) */
+    .theme-switch{
+      position:fixed;
+      top:calc(10px + env(safe-area-inset-top));
+      right:calc(10px + env(safe-area-inset-right));
+      z-index:2000;
+      display:flex;gap:8px;padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+      box-shadow:0 4px 14px rgba(0,0,0,.12)
+    }
+    .theme-switch .pal-icon{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:22px; height:22px; margin-right:8px; border-radius:50%;
+      background:linear-gradient(135deg,#ffd1c7,#ffb3b3);
+      box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.12);
+      font-size:14px; line-height:1; user-select:none; pointer-events:none;
+    }
+    .theme-switch .sw{
+      width:22px;height:22px;border:none;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08)
+    }
+    .theme-switch .sw[data-theme="mint"]{  background:conic-gradient(#7bd49a,#4aa06b)}
+    .theme-switch .sw[data-theme="night"]{ background:conic-gradient(#1f2937,#111827)}
+    .theme-switch .sw[data-theme="sun"]{   background:conic-gradient(#ffd166,#fca311)}
+    .theme-switch .sw[data-theme="peach"]{ background:conic-gradient(#ffb3b3,#ff7f7f)}
+    .theme-switch .sw[data-theme="blue"]{  background:conic-gradient(#8ac7ff,#4f92ff)}
+    .theme-switch .sw.pop{ animation:sw-pop .2s ease-out }
+    @keyframes sw-pop{0%{transform:scale(1)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+    /* 인트로 (한 화면에 딱 맞춤) */
+    #intro .intro{ min-height:100svh; }
+    @supports (min-height: 100dvh){ #intro .intro{ min-height:100dvh; } }
+    .intro{
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+      gap:10px;padding:20px;text-align:center;background:linear-gradient(180deg,#f8fff9 0%, #e9fdee 100%);
+      position:relative;padding-top:clamp(24px,8vh,72px);
+    }
+    .intro-top{margin:0;color:#2c7a4c;font-size:clamp(28px, 6vw, 34px)}
+    .intro-top.wave span{display:inline-block;animation:waveChar 1.6s ease-in-out infinite}
+    @keyframes waveChar{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    .intro-main{
+      margin:0;font-size:clamp(40px, 12vw, 54px);line-height:1.1;
+      background:linear-gradient(90deg,#A5E6B8,#A9D6FF,#FFD6E8,#FFEAA7,#A5E6B8);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:300% 100%;
+      animation:shine 6s linear infinite; text-shadow:0 4px 10px rgba(0,0,0,.08);
+    }
+    @keyframes shine{0%{background-position:0%}100%{background-position:100%}}
+    video{
+      width:min(780px,94vw); max-width:100%;
+      aspect-ratio:16/9; object-fit:cover; background:#f4f4f4;
+      border-radius:18px; box-shadow:var(--shadow);
+      max-height:48vh; /* JS가 실제 높이 계산해서 덮어씀 */
+    }
+    .footer-logo{
+      position:absolute;left:50%;transform:translateX(-50%);
+      bottom:calc(env(safe-area-inset-bottom) + 14px);
+      font-size:clamp(19.8px, 2.86vh, 24.2px); /* 기존 대비 110% */
+      color:#0b2a6f;letter-spacing:.5px; white-space:nowrap;
+    }
+
+    /* 폼 */
+    .wrap{max-width:740px;margin:0 auto;padding:16px}
+    form{background:#fff;border:3px solid var(--accent);border-radius:20px;padding:22px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+    .form-group{margin-bottom:18px}
+    label{display:block;margin-bottom:8px;color:#1e3e2d;font-weight:900}
+    input,select,textarea{
+      width:100%;font-family:'Jua',sans-serif;font-size:18px;border:2px solid #d3f2db;border-radius:12px;padding:14px;background:#fff;
+      transition:border .15s, box-shadow .15s
+    }
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--main);box-shadow:0 0 0 3px rgba(92,171,109,.18)}
+    textarea{min-height:120px;resize:vertical}
+
+    /* 게이지 + 카운터 */
+    .gauge-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+    .gauge{flex:1;background:#eef6ef;border-radius:12px;height:18px;overflow:hidden;position:relative;box-shadow:inset 0 2px 4px rgba(0,0,0,.06)}
+    .gauge-bar{height:100%;width:0%;background:#ffcc00;transition:width .35s ease, background .35s ease}
+    .gcount{min-width:48px;text-align:right;font-weight:900;color:#2d4d38;opacity:.9}
+    .gmsg{margin-top:8px;font-size:16px;color:#2d4d38;min-height:1.6em}
+
+    /* 결과 카드 (콤팩트) */
+    .card{position:relative;background:#fff;border:3px solid var(--accent);border-radius:20px;padding:10px 10px 16px;
+      max-width:740px;margin:0 auto;box-shadow:0 10px 22px rgba(0,0,0,.12);overflow:hidden}
+    .banner{margin:4px 0 6px;text-align:center;color:#2d4d38;font-size:24px}
+    .card-body{display:grid;grid-template-columns:minmax(98px,120px) 1fr;gap:10px;align-items:center}
+    .dimo{width:112px;border-radius:16px;display:none}
+    .ratings{display:grid;gap:8px}
+    .rating{display:flex;flex-direction:column;gap:6px;background:#f9fffb;border:2px solid #d3f2db;border-radius:10px;padding:6px 10px}
+    .rating h3{margin:0;font-size:16px;color:#2d4d38}
+
+    /* 칭찬 박스(이미지 옆) */
+    .cbox{
+      background:#edf9f1; /* 은은한 녹색으로 변경 */
+      border:2px solid #cdeed8;border-radius:12px;padding:10px 12px;margin:0 0 2px 0;
+      font-size:clamp(18px, 4.2vw, 20px);font-weight:900;color:#14543a;display:flex;align-items:center;gap:8px;
+      word-break:keep-all; line-height:1.28;
+    }
+    .cbox::before{content:"🌟"} .cbox::after{content:"🌟"}
+
+    /* 별점(반짝임/글린트 제거, 진한 노랑) */
+    .stars{display:flex;gap:6px;white-space:nowrap;font-size:24px}
+    .star{position:relative;color:#d8d8d8}
+    .star.full{color:#F5B301}
+    .star.half::before{content:"★";position:absolute;left:0;top:0;width:50%;overflow:hidden;color:#F5B301}
+    .star.full::after,.star.half::after{display:none}
+    .star.blink{animation:none !important}
+
+    /* 발명자/발명품 */
+    .info{
+      margin-top:10px;padding:10px 12px;border-radius:12px;border:2px solid #d3f2db;background:#fafffa;
+      text-align:center;font-size:16px;display:flex;flex-direction:column;gap:6px;align-items:center
+    }
+    .info strong{color:var(--main)}
+
+    /* 스탬프(이제 랜덤 위치; scale은 유지, origin은 아래 PATCH에서 보정) */
+    #stampArea{position:absolute;inset:0;pointer-events:none}
+    .stamp-wrap{position:absolute; transform-origin:100% 100%; transform:scale(1.1);}
+    .stamp-img{width:100%;display:block;filter:drop-shadow(0 6px 12px rgba(0,0,0,.12));transform-origin:center;opacity:.97}
+    .stamp-enter{animation:pop .52s cubic-bezier(.18,1.4,.22,1) forwards, stamp-shiver .22s ease-out .52s 1}
+    @keyframes pop{0%{opacity:0;transform:translateY(-14px) scale(1.25) rotate(var(--r,-4deg))}65%{opacity:1;transform:translateY(0) scale(.96) rotate(var(--r,-4deg))}100%{transform:scale(1) rotate(var(--r,-4deg))}}
+    @keyframes stamp-shiver{0%{transform:translate(0,0) rotate(var(--r,-4deg))}40%{transform:translate(-0.6px,0.4px) rotate(calc(var(--r,-4deg) + .4deg))}70%{transform:translate(0.4px,-0.6px) rotate(calc(var(--r,-4deg) - .3deg))}100%{transform:translate(0,0) rotate(var(--r,-4deg))}}
+    .stamp-wrap .ink-bleed{display:none}
+    .stamp-wrap .stamp-puff{position:absolute;inset:0;border-radius:50%;border:3px solid rgba(200,0,0,.35);opacity:0;filter:blur(.3px);animation:puff .6s ease-out .05s forwards}
+    @keyframes puff{0%{transform:scale(.7);opacity:.55}100%{transform:scale(1.35);opacity:0}}
+
+    /* 저장/토스트/하트 */
+    .center{text-align:center;margin-top:10px}
+    .btn-save{background:linear-gradient(135deg,#bff3c8,#8de0d3);color:#0f3a30;font-weight:900;min-width:260px;padding:12px 20px}
+    .toast{
+      position:fixed;left:50%;transform:translateX(-50%);
+      bottom:calc(20px + env(safe-area-inset-bottom));
+      background:#2c7a4c;color:#fff;padding:12px 16px;border-radius:10px;
+      font-weight:800;box-shadow:0 10px 20px rgba(0,0,0,.18);opacity:0;visibility:hidden;transition:.25s;z-index:9999
+    }
+    .toast.show{opacity:1;visibility:visible}
+    #fxLayer{position:fixed;inset:0;pointer-events:none;z-index:3000}
+    .heart{position:fixed;width:14px;height:14px;background:#ff5a7a;transform:rotate(45deg);opacity:.95;animation:floatHeart 1.8s ease-out forwards}
+    .heart::before,.heart::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#ff5a7a}
+    .heart::before{left:-7px;top:0}.heart::after{top:-7px;left:0}
+    @keyframes floatHeart{0%{transform:translateY(0) rotate(45deg) scale(.8);opacity:1}100%{transform:translateY(-160px) rotate(45deg) scale(1.1);opacity:0}}
+
+    /* === (1) 고대비 모드 === */
+    body[data-contrast="high"]{
+      --bg:#ffffff; --text:#0b0f14; --main:#0d6e3e; --accent:#84d19d;
+    }
+    body[data-contrast="high"] .btn-primary{ filter:saturate(1.1) contrast(1.05); }
+    body[data-contrast="high"] input:focus,
+    body[data-contrast="high"] select:focus,
+    body[data-contrast="high"] textarea:focus{
+      box-shadow:0 0 0 3px rgba(13,110,62,.3);
+    }
+
+    /* 고대비 토글 FAB */
+    .fab-contrast{
+      position:fixed; left:12px; bottom:calc(16px + env(safe-area-inset-bottom));
+      height:44px; min-width:44px; padding:0 14px;
+      border-radius:999px; border:2px solid rgba(0,0,0,.08);
+      background:#fff; color:#0b0f14; font-weight:900; z-index:2100;
+      display:flex; align-items:center; gap:8px; box-shadow:0 6px 18px rgba(0,0,0,.14);
+    }
+    .fab-contrast .dot{ width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,#000,#fff); box-shadow:inset 0 0 0 2px rgba(0,0,0,.1); }
+
+    /* === (2) 예시칩 === */
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 2px; }
+    .chip{
+      border:none; border-radius:999px; padding:10px 14px; font-size:16px; font-weight:900;
+      background:#eef6ef; color:#17402a; box-shadow:inset 0 0 0 2px #d3f2db;
+      min-height:44px; cursor:pointer;
+    }
+    .chip:active{ transform:scale(.98); }
+
+    /* === (4) 미니 진행 스티커 === */
+    .mini-stickers{
+      display:flex; align-items:center; gap:8px; margin:0 0 12px;
+      position:sticky; top:0; z-index:5; background:linear-gradient(180deg,#ffffff, #ffffffcc 70%, transparent);
+      padding-bottom:6px;
+    }
+    .mini-sticker{
+      width:32px; height:32px; border-radius:50%;
+      display:grid; place-items:center; font-size:18px; filter:grayscale(1) opacity(.5);
+      border:2px solid #d3f2db; background:#f6fff8;
+    }
+    .mini-sticker.done{ filter:none; opacity:1; border-color:#7bd49a; background:#eafff1; box-shadow:0 3px 10px rgba(0,0,0,.08); }
+    .mini-sticker .label{ position:absolute; left:-9999px; } /* SR 전용 텍스트 */
+  </style>
+
+  <!-- 탭 스파클 CSS (키프레임) -->
+  <style id="spark-css-v3">
+    .spark{
+      position:fixed; left:0; top:0;
+      transform:translate(-50%,-50%) scale(.9);
+      font-size:12px; line-height:1;
+      user-select:none; pointer-events:none;
+      will-change: transform, opacity;
+      z-index:3500;
+      animation: spark-fly 720ms cubic-bezier(.2,.8,.2,1) forwards;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.25));
+    }
+    @keyframes spark-fly{
+      0%   { opacity:1;  transform:translate(-50%,-50%) scale(.9); }
+      100% { opacity:0;  transform:translate(calc(-50% + var(--tx,0px)), calc(-50% + var(--ty,0px))) scale(1.2); }
+    }
+  </style>
+
+  <!-- ===== 기존 PATCH (원본 유지) ===== -->
+  <style id="PATCH-DIMO-OVERRIDES">
+    /* 인트로 로고 조금 더 위로 */
+    #intro .footer-logo{ bottom: calc(env(safe-area-inset-bottom) + 28px) !important; }
+
+    /* 별점: 항목 | 별 한 줄 정렬 */
+    #resultScreen .rating{
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      padding: 6px 10px !important;
+    }
+    #resultScreen .rating h3{ margin:0 !important; }
+
+    /* 팔레트(테마 스위처) 결과 카드 위로 도킹 시 스타일 */
+    .theme-switch.theme-docked{
+      position: sticky !important;
+      top: 8px; right: auto; left: auto;
+      margin: 0 0 8px 0;
+      display: flex !important;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(255,255,255,.85);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+
+    /* 설문/결과 화면의 말풍선 요소는 강제 숨김 */
+    #formScreen .bubble, #resultScreen .bubble,
+    #formScreen .speech-bubble, #resultScreen .speech-bubble { display:none !important; }
+  </style>
+
+  <!-- ===== PATCH-V2-CSS ===== -->
+  <style id="PATCH-V2-CSS">
+    #formScreen .chips,
+    #formScreen .mini-stickers { display:none !important; }
+
+    #resultScreen .card-body{
+      grid-template-columns: 1fr !important;
+      align-items: start !important;
+    }
+    #resultScreen .dimo{
+      display:block !important;
+      margin: 6px auto 10px !important;
+    }
+    #resultScreen .cbox{
+      margin: 6px 0 8px !important;
+      text-align:center !important;
+      justify-content:center !important;
+    }
+    #resultScreen .ratings{ gap:8px !important; }
+    #resultScreen .rating{
+      flex-direction:row !important;
+      align-items:center !important;
+      justify-content:space-between !important;
+      gap:10px !important;
+    }
+    #resultScreen .rating h3{
+      white-space:nowrap !important;
+      margin:0 !important;
+    }
+  </style>
+
+  <!-- ===== PATCH-V3-CSS ===== -->
+  <style id="PATCH-V3-CSS">
+    #contrastFab { display:none !important; }
+    #formScreen .chips { display:flex !important; }
+    #formScreen .mini-stickers { display:none !important; }
+  </style>
+
+  <!-- ===== PATCH-V4-CSS ===== -->
+  <style id="PATCH-V4-CSS">
+    #resultScreen .card{ padding-bottom: 56px !important; }
+    #resultScreen .footer-logo{
+      position:absolute; left:50%; transform:translateX(-50%);
+      bottom:8px; line-height:1;
+      font-size: clamp(16px, 2.2vh, 20px);
+      letter-spacing:.4px;
+    }
+    #resultScreen .banner{ margin:2px 0 6px !important; font-size:clamp(20px,5vw,24px) !important; }
+    #resultScreen .card-body{ gap:8px !important; }
+    #resultScreen .cbox{ margin:4px 0 6px !important; }
+    #resultScreen .ratings{ gap:6px !important; }
+    #resultScreen .rating{ padding:4px 8px !important; }
+    #resultScreen .stars{ font-size:22px !important; }
+    #resultScreen .info{ margin-top:6px !important; padding:8px 10px !important; }
+  </style>
+
+  <!-- ===== PATCH-V6-CSS ===== -->
+  <style id="PATCH-V6-CSS">
+    #intro #toForm{ margin-top:2cm !important; }
+    #resultScreen .dimo{ transform:scale(1.1) !important; transform-origin:center !important; }
+
+    #resultScreen #cardDate{
+      position:absolute; right:10px; bottom:2px;
+      font-size:clamp(12px,1.6vh,14px); opacity:.85; letter-spacing:.2px;
+    }
+
+    /* 무지개 테두리 + 은은한 녹색 배경 보정 */
+    #resultScreen .cbox{
+      border-radius:12px !important;
+      border:3px solid transparent !important;
+      background:
+        linear-gradient(#edf9f1,#edf9f1) padding-box,
+        conic-gradient(#ff6b6b,#ffd166,#a0e062,#4f92ff,#a48bff,#ff7f7f,#ff6b6b) border-box !important;
+      background-clip:padding-box,border-box !important;
+    }
+  </style>
+
+  <!-- ===== PATCH-V7-CSS (스탬프 랜덤 배치용: origin 보정) ===== -->
+  <style id="PATCH-V7-CSS">
+    .stamp-wrap{ transform-origin: top left !important; } /* 랜덤 좌표 기준(좌상단)으로 스케일 적용 */
+  </style>
+</head>
+<body>
+  <!-- 테마 스위처 (인트로에서만 표시) -->
+  <div class="theme-switch" aria-label="색상 테마 선택">
+    <span class="pal-icon" aria-hidden="true">🎨</span>
+    <button class="sw" data-theme="mint"  title="Mint"></button>
+    <button class="sw" data-theme="night" title="Night"></button>
+    <button class="sw" data-theme="sun"   title="Sun"></button>
+    <button class="sw" data-theme="peach" title="Peach"></button>
+    <button class="sw" data-theme="blue"  title="Blue"></button>
+  </div>
+
+  <!-- 고대비 토글 FAB (전 화면 공통) -->
+  <button id="contrastFab" class="fab-contrast" type="button" aria-pressed="false" aria-label="고대비 모드 토글">
+    <span class="dot" aria-hidden="true"></span><span>고대비</span>
+  </button>
+
+  <div class="pattern" aria-hidden="true"></div>
+
+  <!-- 인트로 -->
+  <section id="intro" class="screen active">
+    <div class="intro">
+      <h2 class="intro-top">디모와 함께 하는</h2>
+      <h1 class="intro-main">상상 놀이터</h1>
+
+      <video autoplay muted loop playsinline webkit-playsinline poster="dimo_poster.jpg">
+        <source src="dimo.mp4" type="video/mp4">
+      </video>
+
+      <button id="toForm" class="btn btn-primary">👋 디모 만나러 가기</button>
+
+      <div class="footer-logo intro-footer">DIMO UNIVERSE</div>
+
+      <!-- 인사 음성 (랜덤 | preload none) -->
+      <audio id="intro1" src="디모인트로인사1.mp3" preload="none"></audio>
+      <audio id="intro2" src="디모인트로인사2.mp3" preload="none"></audio>
+      <audio id="intro3" src="디모인트로인사3.mp3" preload="none"></audio>
+      <audio id="intro4" src="디모인트로인사4.mp3" preload="none"></audio>
+    </div>
+  </section>
+
+  <!-- 설문 -->
+  <section id="formScreen" class="screen">
+    <div class="wrap">
+      <div id="miniStickers" class="mini-stickers" role="status" aria-live="polite"></div>
+
+      <form id="ideaForm" novalidate autocomplete="on">
+        <div class="form-group">
+          <label for="age">1. 디모는 친구 나이가 궁금해! *</label>
+          <select id="age" required>
+            <option value="">선택하세요</option>
+            <option value="8">8세</option><option value="9">9세</option><option value="10">10세</option>
+            <option value="11">11세</option><option value="12">12세</option><option value="13">13세</option>
+            <option value="14">14세</option><option value="15">15세</option><option value="16">16세</option>
+            <option value="17">17세</option><option value="18">18세</option><option value="19">19세</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="nickname">2. 너의 멋진 별명을 정해줘! *</label>
+          <input id="nickname" name="nickname" type="text" placeholder="예: 발명왕 디모!"
+                 inputmode="text" autocomplete="nickname" autocapitalize="words" spellcheck="false" required>
+          <div id="chips-nickname" class="chips"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="problem">3. '아~ 이거 불편하다!' 했던 순간은? *</label>
+          <textarea id="problem" placeholder="예: 연필이 자꾸 굴러가서 잃어버려요"
+                    inputmode="text" autocapitalize="sentences" spellcheck="true" required></textarea>
+          <div id="chips-problem" class="chips"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="ideaName">4. 그 불편을 해결할 멋진 발명품 이름은? *</label>
+          <input id="ideaName" type="text" placeholder="예: 안 굴러가는 연필"
+                 inputmode="text" autocapitalize="words" autocomplete="on" spellcheck="false" required>
+          <div id="chips-ideaname" class="chips"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="ideaDetail">5. 발명품은 어떻게 작동하고 뭐가 편해져? *</label>
+          <textarea id="ideaDetail" placeholder="예: 연필에 작은 자석이 붙어서 책상에 딱 붙어요…"
+                    inputmode="text" autocapitalize="sentences" spellcheck="true" required></textarea>
+
+          <div class="gauge-row">
+            <div class="gauge" aria-hidden="true">
+              <div class="gauge-bar" id="charBar"></div>
+            </div>
+            <div id="charCount" class="gcount" aria-live="polite">0자</div>
+          </div>
+          <div id="charMsg" class="gmsg">🌱 아직 생각의 씨앗 단계예요.</div>
+
+          <div id="chips-ideadetail" class="chips"></div>
+        </div>
+
+        <!-- 이메일 안내 및 선택 입력 -->
+        <div class="form-group">
+          <label>6. (선택) 보호자 이메일</label>
+          <div style="font-size:14px;color:#2d4d38;opacity:.9;margin:6px 0 10px">
+            ※ <b>굿즈 이벤트 응모를 원할 경우에만</b> 이메일을 입력해요. <b>입력하지 않아도 스탬프는 그대로 진행</b>돼요.
+          </div>
+
+          <label class="consent-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <input id="emailConsent" type="checkbox" aria-controls="emailBlock" aria-expanded="false" style="width:20px;height:20px;accent-color:var(--main)">
+            <span>굿즈 이벤트 응모 (선택)</span>
+          </label>
+
+          <div id="emailBlock" style="display:none;margin-left:2px">
+            <input id="parentEmail" type="email" placeholder="예: parent@example.com"
+                   inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin-top:4px">
+            <div class="consent-note" style="font-size:14px;color:#2d4d38;opacity:.8;margin-top:6px">
+              ※ 이메일은 <b>경품(굿즈) 당첨 안내</b> 용도로만 사용되며, 행사 종료 후 즉시 파기됩니다.
+            </div>
+          </div>
+        </div>
+
+        <div class="center"><button type="submit" class="btn btn-primary">제출하기</button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <section id="resultScreen" class="screen">
+    <div class="wrap">
+      <div id="card" class="card">
+        <h2 class="banner">나만의 아이디어 카드</h2>
+        <div class="card-body">
+          <img id="dimoImg" class="dimo" alt="디모" src="">
+          <div>
+            <div id="complimentText" class="cbox">💬 디모가 응원 중!</div>
+            <div class="ratings">
+              <div class="rating"><h3>반짝이는 상상력</h3><div id="creativity" class="stars"></div></div>
+              <div class="rating"><h3>정말 될까? 점수</h3><div id="feasibility" class="stars"></div></div>
+              <div class="rating"><h3>디모의 기술력 레벨</h3><div id="technical" class="stars"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info">
+          <span>👤 <strong>발명자:</strong> <span id="inventorName"></span></span>
+          <span>💡 <strong>내 발명품:</strong> <span id="ideaDisplay"></span></span>
+        </div>
+
+        <div id="stampArea"></div>
+        <div class="footer-logo">DIMO UNIVERSE</div>
+
+        <!-- 결과 칭찬 오디오 -->
+        <audio id="compliment1" src="디모칭찬01.mp3" preload="none"></audio>
+        <audio id="compliment2" src="디모칭찬02.mp3" preload="none"></audio>
+        <audio id="compliment3" src="디모칭찬03.mp3" preload="none"></audio>
+        <audio id="compliment4" src="디모칭찬04.mp3" preload="none"></audio>
+        <audio id="compliment5" src="디모칭찬05.mp3" preload="none"></audio>
+        <audio id="compliment6" src="디모 칭찬 메시지.mp3" preload="none"></audio>
+      </div>
+
+      <div class="center"><button id="saveBtn" class="btn btn-save">🎨 카드 저장하기</button></div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">📥 앨범에 저장되었어요!</div>
+  <div id="fxLayer" aria-hidden="true"></div>
+
+  <script>
+    const MOBILE = matchMedia('(max-width: 480px), (pointer: coarse)').matches;
+    const dimoImages = ["dimo01.png","dimo02.png","dimo03.png","dimo04.png"];
+    const STAR_STEP_MS = 260;
+
+    /* 외부 스크립트 지연 로드 */
+    async function ensureScript(src){
+      if (document.querySelector(`script[src="${src}"]`)) return;
+      await new Promise((resolve, reject)=>{
+        const s=document.createElement('script'); s.src=src; s.async=true;
+        s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+      });
+    }
+
+    /* 오디오 컨텍스트 */
+    let AC=null;
+    async function resumeAudio(){
+      try{
+        const C = window.AudioContext || window.webkitAudioContext;
+        if(!AC && C) AC = new C();
+        if(AC && AC.state === 'suspended') await AC.resume();
+      }catch(e){}
+    }
+    async function playOne(a){
+      if(!a) return false;
+      try{
+        await resumeAudio();
+        if(a.preload === 'none') a.load();
+        a.currentTime=0; a.muted=false; a.volume=Math.min(a.volume||1,1);
+        await a.play();
+        return true;
+      }catch(e){ return false; }
+    }
+
+    /* 콘페티 */
+    async function fireConfetti(duration=1500){
+      if(!window.confetti){
+        await ensureScript('https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js');
+      }
+      const end = Date.now() + duration;
+      (function frame(){
+        confetti({particleCount: 6, startVelocity: 32, spread: 360, origin:{x:Math.random(), y:Math.random()*0.4}});
+        if(Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    /* 랜덤 칭찬 오디오 */
+    function pickRandomComplimentAudio(){
+      const ids=["compliment1","compliment2","compliment3","compliment4","compliment5","compliment6"];
+      const els=ids.map(id=>document.getElementById(id)).filter(Boolean);
+      return els[Math.floor(Math.random()*els.length)];
+    }
+    async function playComplimentWithFallback(){
+      const a = pickRandomComplimentAudio(); if(!a) return;
+      let ok = await playOne(a);
+      if(!ok){
+        const rs=document.getElementById('resultScreen');
+        const handler = async ()=>{ rs.removeEventListener('pointerdown', handler); await playOne(a); };
+        rs.addEventListener('pointerdown', handler, {once:true});
+      }
+    }
+
+    /* 테마 스위처 */
+    (function(){
+      const themes = {
+        mint:  { main:'#5cab6d', accent:'#a5e6b8', bg:'#f8fff9', text:'#173322' },
+        night: { main:'#334155', accent:'#1f2937', bg:'#0b1220', text:'#e5e7eb' },
+        sun:   { main:'#fca311', accent:'#ffd166', bg:'#fffaf2', text:'#402f0a' },
+        peach: { main:'#ff7f7f', accent:'#ffb3b3', bg:'#fff8f8', text:'#3f1e1e' },
+        blue:  { main:'#4f92ff', accent:'#8ac7ff', bg:'#f4f9ff', text:'#0d2040' },
+      };
+      const root = document.documentElement;
+      document.querySelectorAll('.theme-switch .sw').forEach(sw=>{
+        sw.addEventListener('click', ()=>{
+          const t = themes[sw.dataset.theme]; if(!t) return;
+          root.style.setProperty('--main',  t.main);
+          root.style.setProperty('--accent',t.accent);
+          root.style.setProperty('--bg',    t.bg);
+          root.style.setProperty('--text',  t.text);
+          sw.classList.add('pop'); setTimeout(()=>sw.classList.remove('pop'), 220);
+        }, {passive:true});
+      });
+    })();
+
+    /* 인트로 → 폼 전환 */
+    (function(){
+      const btn=document.getElementById('toForm');
+      const intro=document.getElementById('intro');
+      const form=document.getElementById('formScreen');
+      const intros=["intro1","intro2","intro3","intro4"].map(id=>document.getElementById(id)).filter(Boolean);
+
+      btn.addEventListener('click', async ()=>{
+        await resumeAudio();
+        const pick=a=>a[Math.floor(Math.random()*a.length)];
+        const audio=intros.length?pick(intros):null;
+
+        const go=()=>{
+          intro.classList.remove('active');
+          form.classList.add('active');
+          updateScreenFlag();
+        };
+
+        if(audio){
+          const started = await playOne(audio);
+          if(started){ audio.onended = ()=> setTimeout(go, 2000); }
+          else{ setTimeout(go, 2000); }
+        }else{
+          setTimeout(go, 2000);
+        }
+      }, {passive:true});
+    })();
+
+    /* “디모 만나러 가기” 한 번만 실행 */
+    (function(){
+      const btn = document.getElementById('toForm');
+      if(!btn) return;
+      let used = false;
+      btn.addEventListener('click', function(e){
+        if(used){
+          e.stopImmediatePropagation(); e.preventDefault();
+          return;
+        }
+        used = true;
+        btn.disabled = true;
+        btn.style.pointerEvents='none';
+      }, true);
+    })();
+
+    /* 타이틀 물결 */
+    (function(){
+      const t = document.querySelector('.intro .intro-top');
+      if(!t) return;
+      const raw = t.textContent; t.textContent = ''; t.classList.add('wave');
+      const splitGraphemes = (str)=>{
+        if (window.Intl && typeof Intl.Segmenter === 'function') {
+          const seg = new Intl.Segmenter('ko', { granularity: 'grapheme' });
+          return Array.from(seg.segment(str), s => s.segment);
+        }
+        return Array.from(str);
+      };
+      splitGraphemes(raw).forEach((ch,i)=>{
+        const s=document.createElement('span');
+        s.textContent=(ch===' ') ? '\u00A0' : ch;
+        s.style.animationDelay = (i*0.08)+'s';
+        t.appendChild(s);
+      });
+    })();
+
+    /* 예시칩 */
+    (function(){
+      const MAP = [
+        { el:'#chips-nickname',  target:'#nickname',
+          items:['발명왕','번쩍천재','아이디어왕','디모친구','문제해결사'] },
+        { el:'#chips-problem',   target:'#problem',
+          items:['연필이 자꾸 굴러가요','가방이 무거워요','지우개가 자주 사라져요','책상이 지저분해요','체육복을 자주 잊어요'] },
+        { el:'#chips-ideaname',  target:'#ideaName',
+          items:['안 굴러가는 연필','초경량 가방','안 사라지는 지우개','정리왕 책상','잊지마 체육복 클립'] },
+        { el:'#chips-ideadetail',target:'#ideaDetail',
+          items:['작은 자석으로 딱 붙어요','초경량 소재로 가벼워요','스트랩으로 항상 고정돼요','칸이 나뉘어 정리 쉬워요','앱 알림으로 잊지 않아요'] },
+      ];
+      const setOrAppend = (input, text)=>{
+        if(!input) return;
+        const isEmpty = !input.value || !input.value.trim();
+        if(input.tagName==='TEXTAREA'){
+          if(isEmpty) input.value = text;
+          else input.value = input.value.replace(/\s*$/, '') + (input.value.endsWith('\n')?'':' ') + text;
+        }else{
+          input.value = isEmpty ? text : (input.value + ' ' + text);
+        }
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+        input.focus();
+      };
+      MAP.forEach(({el,target,items})=>{
+        const box = document.querySelector(el);
+        const tgt = document.querySelector(target);
+        if(!box || !tgt) return;
+        items.forEach(label=>{
+          const b=document.createElement('button');
+          b.type='button'; b.className='chip'; b.textContent=label;
+          b.addEventListener('click', ()=> setOrAppend(tgt, label));
+          box.appendChild(b);
+        });
+      });
+    })();
+
+    /* 미니 스티커 */
+    (function(){
+      const holder = document.getElementById('miniStickers');
+      if(!holder) return;
+      const steps = [
+        { id:'age',        icon:'🎂', label:'나이' },
+        { id:'nickname',   icon:'🏷️', label:'별명' },
+        { id:'problem',    icon:'🧩', label:'문제' },
+        { id:'ideaName',   icon:'💡', label:'이름' },
+        { id:'ideaDetail', icon:'🛠️', label:'설명' },
+      ];
+      const nodes = steps.map(s=>{
+        const d=document.createElement('div'); d.className='mini-sticker'; d.title=s.label;
+        d.innerHTML = `<span aria-hidden="true">${s.icon}</span><span class="label">${s.label}</span>`;
+        holder.appendChild(d); return d;
+      });
+
+      function validate(){
+        const v1 = !!document.getElementById('age').value;
+        const v2 = !!document.getElementById('nickname').value.trim();
+        const v3 = document.getElementById('problem').value.trim().length >= 5;
+        const v4 = !!document.getElementById('ideaName').value.trim();
+        const v5 = document.getElementById('ideaDetail').value.trim().length >= 10;
+        [v1,v2,v3,v4,v5].forEach((ok,i)=>{
+          nodes[i].classList.toggle('done', ok);
+        });
+      }
+      document.getElementById('ideaForm').addEventListener('input', validate);
+      document.getElementById('ideaForm').addEventListener('change', validate);
+      validate();
+    })();
+
+    /* 고대비 토글 */
+    (function(){
+      const btn = document.getElementById('contrastFab');
+      const KEY = 'dimo_contrast_high';
+      const apply = (on)=>{
+        document.body.dataset.contrast = on ? 'high' : '';
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      };
+      apply(localStorage.getItem(KEY)==='1');
+      btn.addEventListener('click', ()=>{
+        const next = !(localStorage.getItem(KEY)==='1');
+        localStorage.setItem(KEY, next ? '1':'0');
+        apply(next);
+      });
+    })();
+
+    /* 힌트 오디오 */
+    (function(){
+      const MP3_NICK = '별명안내멘트.mp3';
+      const MP3_IDEA = '아이디어설명멘트.mp3';
+      function ensureHintAudio(id, src){
+        let a = document.getElementById(id);
+        if(!a){
+          a = document.createElement('audio');
+          a.id = id; a.preload = 'none';
+          document.body.appendChild(a);
+        }
+        a.src = src; return a;
+      }
+      const aNick = ensureHintAudio('hintNickname',   MP3_NICK);
+      const aIdea = ensureHintAudio('hintIdeaDetail', MP3_IDEA);
+      const once={once:true,passive:true};
+      const nick = document.getElementById('nickname');
+      const idea = document.getElementById('ideaDetail');
+      nick?.addEventListener('pointerdown', ()=>playOne(aNick), once);
+      nick?.addEventListener('focus',       ()=>playOne(aNick), once);
+      idea?.addEventListener('pointerdown', ()=>playOne(aIdea), once);
+      idea?.addEventListener('focus',       ()=>playOne(aIdea), once);
+    })();
+
+    /* 인트로 비디오 높이 계산 */
+    (function(){
+      function fitIntro(){
+        const introSec = document.querySelector('#intro .intro');
+        const title    = document.querySelector('#intro .intro-top');
+        const main     = document.querySelector('#intro .intro-main');
+        const video    = document.querySelector('#intro video');
+        const cta      = document.getElementById('toForm');
+        const palette  = document.querySelector('.theme-switch');
+        const footer   = document.querySelector('#intro .footer-logo');
+        if(!introSec || !video) return;
+
+        const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+        const cs = getComputedStyle(introSec);
+        const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+        const h = el => el ? el.getBoundingClientRect().height : 0;
+        const others = h(title)+h(main)+h(cta)+h(footer)+h(palette)+24+padY;
+        let avail = Math.max(140, vh - others) - 6;
+        video.style.maxHeight = avail + 'px';
+      }
+      window.addEventListener('load',  fitIntro, {once:true});
+      window.addEventListener('resize', fitIntro);
+      if (window.visualViewport) visualViewport.addEventListener('resize', fitIntro);
+      requestAnimationFrame(fitIntro);
+    })();
+
+    /* 게이지 & 메시지 + 카운터 */
+    (function(){
+      const detail=document.getElementById('ideaDetail');
+      const bar=document.getElementById('charBar');
+      const msg=document.getElementById('charMsg');
+      const count=document.getElementById('charCount');
+
+      function update(){
+        const len=(detail.value||'').trim().length;
+        const pct=Math.min(len/70*100,100);
+        bar.style.width=pct+'%';
+        if(count) count.textContent = `${len}자`;
+
+        if(len<30){
+          bar.style.background='#ffcc00';
+          msg.textContent='🌱 아직 생각의 씨앗 단계예요.';
+        } else if(len<40){
+          bar.style.background='linear-gradient(90deg,#a8e6c3,#7bd49a)';
+          msg.textContent='🎉 디모 스탬프 획득!';
+        } else if(len<50){
+          bar.style.background='linear-gradient(90deg,#8ac7ff,#4f92ff)';
+          msg.textContent='💫 만점 가능성 도달!';
+        } else if(len<70){
+          bar.style.background='linear-gradient(90deg,#a48bff,#6a5acd)';
+          msg.textContent='💎 레어 스탬프 추첨권 획득!';
+        } else {
+          bar.style.background='linear-gradient(90deg,red,orange,yellow,green,blue,indigo,violet)';
+          msg.textContent='🌈 레어 스탬프 당첨 확률 2배 강화!';
+        }
+      }
+      detail.addEventListener('input',update,{passive:true}); update();
+    })();
+
+    /* 이메일 토글 */
+    (function(){
+      const consent = document.getElementById('emailConsent');
+      const block   = document.getElementById('emailBlock');
+      const email   = document.getElementById('parentEmail');
+      const toggle = ()=>{
+        const on = !!consent.checked;
+        block.style.display = on ? 'block' : 'none';
+        consent.setAttribute('aria-expanded', on ? 'true' : 'false');
+        if(!on){ email.value=''; }
+      };
+      consent.addEventListener('change', toggle, {passive:true}); toggle();
+    })();
+
+    /* 랜덤 칭찬문구 */
+    function setComplimentText(){
+      const el = document.getElementById('complimentText'); if(!el) return;
+      const lines = [
+        "🤩 와우! 실행력도 기대돼",
+        "💡 아이디어가 톡! 튀었어",
+        "👏 문제정의가 깔끔했어",
+        "🚀 상상력 레벨업! 다음도 가자",
+        "🔧 이건 진짜 써보고 싶다",
+        "🧠 천재의 냄새가…!"
+      ];
+      el.textContent = '💬 ' + lines[Math.floor(Math.random()*lines.length)];
+    }
+
+    /* ===== 별점: 하나씩 점등 ===== */
+    function animateStarsToScore(id, score){
+      return new Promise(resolve=>{
+        const el=document.getElementById(id); if(!el) return resolve();
+        el.innerHTML = '<span class="star">★</span>'.repeat(5);
+        const full=Math.floor(score);
+        const hasHalf = (score-full) >= 0.5;
+        let idx=0, target=full + (hasHalf?1:0);
+
+        (function step(){
+          if(idx>=target){ setTimeout(resolve, 250); return; }
+          const s=el.children[idx];
+          if(idx<full){ s.classList.add('full'); }
+          else if(hasHalf){ s.classList.add('half'); }
+          idx++; setTimeout(step, STAR_STEP_MS);
+        })();
+      });
+    }
+
+    /* 제출 처리 */
+    document.getElementById('ideaForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      await resumeAudio();
+
+      const age=document.getElementById('age').value;
+      const nickname=document.getElementById('nickname').value.trim();
+      const problem=document.getElementById('problem').value.trim();
+      const ideaName=document.getElementById('ideaName').value.trim();
+      const ideaDetail=document.getElementById('ideaDetail').value.trim();
+
+      const consent = document.getElementById('emailConsent').checked;
+      const emailVal= document.getElementById('parentEmail').value.trim();
+
+      if(!age||!nickname||!problem||!ideaName||ideaDetail.length<10){
+        alert('모든 항목을 채워줘! (설명은 10자 이상)'); return;
+      }
+      if(consent){
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailVal);
+        if(!emailOk){ alert('이메일 형식이 맞지 않아! 예: parent@example.com'); return; }
+      }
+
+      // 결과 화면 전환
+      document.getElementById('formScreen').classList.remove('active');
+      document.getElementById('resultScreen').classList.add('active');
+      updateScreenFlag();
+
+      // 데이터 바인딩
+      document.getElementById('inventorName').textContent=nickname;
+      document.getElementById('ideaDisplay').textContent=ideaName;
+      const dimo=document.getElementById('dimoImg');
+      dimo.src=dimoImages[Math.floor(Math.random()*dimoImages.length)];
+      dimo.style.display='block';
+
+      // 점수 계산
+      const len=ideaDetail.length;
+      let didPerfect=false;
+      const scores = (len>=40 && Math.random()<0.04)
+        ? (didPerfect=true, {creativity:5,feasibility:5,technical:5})
+        : {
+            creativity: Math.round((3.5+Math.random()*1.5)*2)/2,
+            feasibility: Math.round((3.5+Math.random()*1.5)*2)/2,
+            technical: Math.round((3.5+Math.random()*1.5)*2)/2
+          };
+
+      // 별점 애니
+      await animateStarsToScore('creativity',  scores.creativity);
+      await animateStarsToScore('feasibility', scores.feasibility);
+      await animateStarsToScore('technical',   scores.technical);
+
+      // 칭찬 문구
+      setComplimentText();
+
+      // 스탬프 종류
+      let stampSrc=null;
+      if(len>=30) stampSrc='디모스탬프01.png';
+      if(didPerfect){ stampSrc='디모스탬프만점02.png'; }
+      else{
+        let rareP = (len>=70) ? 0.06 : (len>=50) ? 0.03 : 0;
+        if(Math.random()<rareP) stampSrc='디모스탬프레어03.png';
+      }
+
+      if(len>=70){ showToastMsg('🎯 레어 확률 2배 강화!'); }
+
+      setTimeout(async ()=>{
+        if(stampSrc){
+          const card=document.getElementById('card');
+          const stampArea=document.getElementById('stampArea');
+          const dimoImg=document.getElementById('dimoImg');
+
+          const cardRect = card.getBoundingClientRect();
+          const imgRect  = dimoImg.getBoundingClientRect();
+
+          // 디모 이미지 영역(카드 기준 좌표)
+          const bounds = {
+            x: imgRect.left - cardRect.left,
+            y: imgRect.top  - cardRect.top,
+            w: imgRect.width,
+            h: imgRect.height
+          };
+
+          // 이전 물리 너비 기준(약 116px)에서 10% 증가, 단 이미지 범위를 넘지 않도록 제한
+          const basePhysical = 132 * 0.8 * 1.1;         // 이전 실제 표시 크기
+          const targetPhysical = Math.min(
+            basePhysical * 1.10,                        // 10% 키움
+            bounds.w * 0.95,                            // 이미지 폭 95% 이내
+            bounds.h * 0.95                             // 이미지 높이 95% 이내
+          );
+
+          const scaleFactor = 1.1;                      // CSS scale(1.1) 적용됨
+          const size = Math.round(targetPhysical / scaleFactor);
+          const visSize = size * scaleFactor;
+
+          // 디모 이미지 영역 내부에서 랜덤 위치(스케일 후에도 영역 안쪽)
+          const spanX = Math.max(0, bounds.w - visSize);
+          const spanY = Math.max(0, bounds.h - visSize);
+          const x = Math.round(bounds.x + Math.random() * spanX);
+          const y = Math.round(bounds.y + Math.random() * spanY);
+          const rot = (Math.random()*8 - 4).toFixed(1);
+
+          stampArea.innerHTML = `
+            <div class="stamp-wrap" style="left:${x}px;top:${y}px;width:${size}px;height:${size}px;">
+              <span class="stamp-puff"></span>
+              <img src="${stampSrc}" alt="스탬프" class="stamp-img stamp-enter" style="--r:${rot}deg">
+              <span class="ink-bleed"></span>
+            </div>`;
+
+          if(navigator.vibrate){ try{ navigator.vibrate(30);}catch{} }
+        }
+        fireConfetti(1800);
+        playComplimentWithFallback();
+      }, 600);
+    });
+
+    function showToastMsg(msg){
+      const t=document.getElementById('toast'); if(!t) return;
+      if(String(msg).includes('저장되었습니다')) msg = '저장되었습니다.';
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'), 1600);
+    }
+
+    /* 저장 */
+    (function(){
+      const btn=document.getElementById('saveBtn'), toast=document.getElementById('toast');
+      function showToast(){ toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1600); }
+      btn.addEventListener('click', async ()=>{
+        await ensureScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+        const card=document.getElementById('card');
+        const scale=Math.min(MOBILE?1.2:1.5, window.devicePixelRatio||1);
+        html2canvas(card,{scale, useCORS:true}).then(canvas=>{
+          const link=document.createElement('a');
+          link.href=canvas.toDataURL('image/png'); link.download='dimo_card.png';
+          if(/iPad|iPhone|iPod/.test(navigator.userAgent)){
+            const w=window.open(); if(w&&w.document) w.document.write('<img src="'+link.href+'" style="width:100%">');
+          } else link.click();
+          showToastMsg('저장되었습니다.');
+        }).catch(showToast);
+      }, {passive:true});
+    })();
+
+    /* 화면 플래그로 패턴/팔레트 표시 제어 */
+    function updateScreenFlag(){
+      const introActive  = document.getElementById('intro')?.classList.contains('active');
+      const formActive   = document.getElementById('formScreen')?.classList.contains('active');
+      const resultActive = document.getElementById('resultScreen')?.classList.contains('active');
+      const screen = introActive ? 'intro' : (formActive ? 'form' : (resultActive ? 'result' : ''));
+      document.body.dataset.screen = screen;
+
+      const palette = document.querySelector('.theme-switch');
+      if (palette) palette.style.display = (screen==='intro') ? 'flex' : 'none';
+    }
+    updateScreenFlag();
+    new MutationObserver(updateScreenFlag).observe(document.body, {subtree:true, attributes:true, attributeFilter:['class']});
+  </script>
+
+  <!-- (탭 스파클 + 패럴랙스) -->
+  <script id="intro-fx-v3">
+    (function(){
+      const intro = document.getElementById('intro');
+      const layer = document.getElementById('fxLayer');
+      if(!intro || !layer) return;
+
+      function sparkBurst(x, y){
+        const N = 12;
+        for(let i=0;i<N;i++){
+          const el = document.createElement('span');
+          el.className = 'spark';
+          el.textContent = (i%3===0) ? '✦' : (i%4===0 ? '★' : '✧');
+          const ang = Math.random()*Math.PI*2;
+          const r   = 52 + Math.random()*68;
+          const tx  = (Math.cos(ang)*r).toFixed(1) + 'px';
+          const ty  = (Math.sin(ang)*r)*1 + 'px';
+          el.style.left = x + 'px';
+          el.style.top  = y + 'px';
+          el.style.setProperty('--tx', tx);
+          el.style.setProperty('--ty', ty);
+          el.style.color = `hsl(${200 + Math.random()*140}, 85%, 60%)`;
+          layer.appendChild(el);
+          el.addEventListener('animationend', ()=> el.remove(), {once:true});
+        }
+      }
+      intro.addEventListener('pointerdown', (e)=>{ sparkBurst(e.clientX, e.clientY); }, {passive:true});
+
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches){
+        const targets = [
+          intro.querySelector('.intro-main'),
+          intro.querySelector('video'),
+          intro.querySelector('#toForm')
+        ].filter(Boolean);
+        targets.forEach(el=> el.style.willChange='transform');
+
+        function tilt(e){
+          const rect = intro.getBoundingClientRect();
+          const cx = rect.left + rect.width/2;
+          const cy = rect.top  + rect.height/2;
+          const nx = (e.clientX - cx) / rect.width;
+          const ny = (e.clientY - cy) / rect.height;
+          const MAX_DEG = 6, MAX_MOVE = 6;
+          const rx = -ny * MAX_DEG, ry = nx * MAX_DEG;
+          const tx = nx * MAX_MOVE,  ty = ny * MAX_MOVE;
+          for(const el of targets){
+            el.style.transform = `translate3d(${tx}px, ${ty}px, 0) rotateX(${rx}deg) rotateY(${ry}deg)`;
+          }
+        }
+        function reset(){ for(const el of targets){ el.style.transform = 'translate3d(0,0,0) rotateX(0) rotateY(0)'; } }
+        intro.addEventListener('pointermove', tilt,   {passive:true});
+        intro.addEventListener('pointerleave', reset, {passive:true});
+      }
+    })();
+  </script>
+
+  <!-- ===== PATCH-V6-JS (팔레트→CTA, 배너 20%+🎉, 날짜 생성, 스탬프 사운드) ===== -->
+  <script id="PATCH-V6-JS">
+  (function(){
+    const $  = (s,r=document)=>r.querySelector(s);
+    const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+    const BODY=document.body, ROOT=document.documentElement;
+
+    /* A. 팔레트: 인트로에서만 CTA 색 변경(전역 테마는 즉시 원복) */
+    (function paletteToCTAOnly(){
+      const DEF = { main:'#5cab6d', accent:'#a5e6b8', bg:'#f8fff9', text:'#173322' };
+      const CTA_BG = {
+        mint:'linear-gradient(90deg,#7bd49a,#4aa06b)',
+        night:'linear-gradient(90deg,#334155,#1f2937)',
+        sun:'linear-gradient(90deg,#fca311,#ffd166)',
+        peach:'linear-gradient(90deg,#ffb3b3,#ff7f7f)',
+        blue:'linear-gradient(90deg,#8ac7ff,#4f92ff)'
+      };
+      function resetRoot(){ try{
+        ROOT.style.setProperty('--main',DEF.main);
+        ROOT.style.setProperty('--accent',DEF.accent);
+        ROOT.style.setProperty('--bg',DEF.bg);
+        ROOT.style.setProperty('--text',DEF.text);
+        document.body.style.background = DEF.bg;
+      }catch(e){} }
+      function paintCTA(key){
+        const btn = $('#toForm'); if(!btn) return;
+        btn.style.background = CTA_BG[key] || CTA_BG.mint;
+        btn.style.color = '#fff';
+        btn.style.boxShadow = '0 8px 18px rgba(0,0,0,.12)';
+      }
+      $$('.theme-switch .sw').forEach(sw=>{
+        sw.addEventListener('click', ()=>{
+          setTimeout(resetRoot,0);
+          if (BODY.dataset.screen==='intro') paintCTA(sw.dataset.theme);
+        }, {passive:true});
+      });
+      if(BODY.dataset.screen==='intro') paintCTA('mint');
+    })();
+
+    /* B. 인트로 레이아웃 재보정 */
+    (function refitIntroAfterMargin(){
+      function fit(){
+        const introSec = $('#intro .intro'); if(!introSec) return;
+        const title=$('#intro .intro-top'), main=$('#intro .intro-main'),
+              video=$('#intro video'), cta=$('#toForm'),
+              palette=$('.theme-switch'), footer=$('#intro .footer-logo');
+        const vh=(visualViewport?visualViewport.height:innerHeight);
+        const padY=parseFloat(getComputedStyle(introSec).paddingTop)+parseFloat(getComputedStyle(introSec).paddingBottom);
+        const H=el=>el?el.getBoundingClientRect().height:0;
+        let ctaH=0; if(cta){ const s=getComputedStyle(cta); ctaH=H(cta)+parseFloat(s.marginTop||0)+parseFloat(s.marginBottom||0); }
+        const others = H(title)+H(main)+ctaH+H(footer)+H(palette)+24+padY;
+        const avail = Math.max(140, vh - others) - 6;
+        if(video) video.style.maxHeight = avail + 'px';
+      }
+      addEventListener('load',fit,{once:true});
+      addEventListener('resize',fit);
+      if(visualViewport) visualViewport.addEventListener('resize',fit);
+      requestAnimationFrame(fit);
+    })();
+
+    /* C. 결과 배너 20% 확대 + 🎉 아이콘 */
+    (function bumpBannerWhenResult(){
+      function enhance(){
+        const banner = $('#resultScreen .banner');
+        if(banner && !banner.dataset.v6){
+          banner.dataset.v6='1';
+          banner.textContent='나만의 아이디어 카드';
+          banner.textContent='🎉 ' + banner.textContent + ' 🎉';
+          const fs=parseFloat(getComputedStyle(banner).fontSize||'24');
+          banner.style.fontSize = (fs*1.2) + 'px';
+        }
+      }
+      const mo = new MutationObserver(()=>{ if(BODY.dataset.screen==='result') enhance(); });
+      mo.observe(BODY,{attributes:true, attributeFilter:['data-screen']});
+      if(BODY.dataset.screen==='result') enhance();
+    })();
+
+    /* D. 결과 카드 날짜 생성(YYYY.MM.DD) */
+    (function resultDate(){
+      function fmt(d){ const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}`; }
+      function ensure(){
+        const card=$('#card'); if(!card) return;
+        let el=$('#cardDate', card);
+        if(!el){ el=document.createElement('div'); el.id='cardDate'; card.appendChild(el); }
+        el.textContent = fmt(new Date());
+      }
+      const mo = new MutationObserver(()=>{ if(BODY.dataset.screen==='result') ensure(); });
+      mo.observe(BODY,{attributes:true, attributeFilter:['data-screen']});
+      if(BODY.dataset.screen==='result') ensure();
+    })();
+
+    /* E. 스탬프 전용 효과음 */
+    (function stampSFX(){
+      const area = $('#stampArea'); if(!area) return;
+      let stampAC=null;
+      function ensureAudio(id, src){
+        let a = document.getElementById(id);
+        if(!a){ a=document.createElement('audio'); a.id=id; a.preload='none'; document.body.appendChild(a); }
+        a.src=src; return a;
+      }
+      const aPerfect = ensureAudio('stampPerfect','만점용칭찬.mp3');
+      const aRare    = ensureAudio('stampRare','행운의레어템칭찬.mp3');
+      async function play(a){
+        try{
+          if(a.preload==='none') a.load();
+          if(!stampAC){ const C=window.AudioContext||window.webkitAudioContext; if(C) stampAC=new C(); }
+          if(stampAC && stampAC.state==='suspended') await stampAC.resume();
+          a.currentTime=0; a.muted=false; a.volume=Math.min(a.volume||1,1);
+          await a.play();
+        }catch(e){
+          const rs=$('#resultScreen');
+          const handler=async()=>{ rs.removeEventListener('pointerdown',handler); try{ await a.play(); }catch(_){} };
+          rs && rs.addEventListener('pointerdown',handler,{once:true});
+        }
+      }
+      const mo = new MutationObserver(muts=>{
+        muts.forEach(m=>{
+          m.addedNodes && m.addedNodes.forEach(n=>{
+            if(n.nodeType!==1) return;
+            const img = n.matches?.('img.stamp-img') ? n : n.querySelector?.('img.stamp-img');
+            if(img && img.src){
+              if(/만점02/i.test(img.src))      play(aPerfect);
+              else if(/레어03/i.test(img.src)) play(aRare);
+            }
+          });
+        });
+      });
+      mo.observe(area,{childList:true,subtree:true});
+    })();
+  })();
+  </script>
+</body>
+</html>
